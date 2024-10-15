@@ -1,0 +1,50 @@
+# telegraf-install.yml
+
+---
+- name: Install Telegraf
+  hosts: all
+  become: yes
+  vars_files:
+    - vars.yml  
+  
+  tasks:
+
+    - name: Download key
+      get_url:
+        url: "{{ influxdb_key_url }}"
+        dest: /tmp/influxdata-archive.key
+        mode: '0644'
+
+    - name: Convert GPG key to binary format
+      command: gpg --dearmor /tmp/influxdata-archive.key
+      args:
+        creates: /tmp/influxdata-archive.gpg
+
+    - name: Work with key
+      command: mv /tmp/influxdata-archive.gpg /etc/apt/trusted.gpg.d/influxdata-archive.gpg
+      args:
+        removes: /tmp/influxdata-archive.gpg
+        creates: /etc/apt/trusted.gpg.d/influxdata-archive.gpg
+
+    - name: Add repo Influxdb
+      apt_repository:
+        repo: "{{ influxdb_repo }}"
+        filename: "influxdata.list"
+        state: present
+        update_cache: no
+
+    - name: Update repo
+      apt:
+        update_cache: yes
+
+    - name: Install Telegraf
+      apt:
+        name: "{{ telegraf_package }}"
+        state: present
+        update_cache: no
+
+    - name: Run Telegraf
+      systemd:
+        name: telegraf
+        state: started
+        enabled: yes

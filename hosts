@@ -1,0 +1,7 @@
+[linux]
+linux1 ansible_host=www.example.com 
+linux2 ansible_host=www.example2.com
+
+[linux:vars]
+ansible_user=ec2-user or azureuser
+ansible_ssh_private_key_file=./home/user/.ssh/example.rem
